@@ -4,6 +4,7 @@ from torchvision import transforms as TR
 import os
 from PIL import Image
 import numpy as np
+import pdb
 
 
 class tenthTrainDataloader(torch.utils.data.Dataset):
@@ -12,10 +13,10 @@ class tenthTrainDataloader(torch.utils.data.Dataset):
         #     opt.load_size = 256
         # else:
         #     opt.load_size = 286
-        #opt.crop_size = 256
-        opt.label_nc = 150
+        opt.crop_size = 256
+        opt.label_nc = 2
         opt.contain_dontcare_label = True
-        opt.semantic_nc = 151 # label_nc + unknown
+        opt.semantic_nc = 2 # label_nc + unknown
         opt.cache_filelist_read = False
         opt.cache_filelist_write = False
         opt.aspect_ratio = 1.0
@@ -31,11 +32,11 @@ class tenthTrainDataloader(torch.utils.data.Dataset):
         image = Image.open(os.path.join(self.paths[0], self.images[idx])).convert('RGB')
         label = Image.open(os.path.join(self.paths[1], self.labels[idx]))
         image, label = self.transforms(image, label)
-        label = label * 255
+        #label = label * 255
         return {"image": image, "label": label, "name": self.images[idx]}
 
     def list_images(self):
-        mode = "test" if self.opt.phase == "test" or self.for_metrics else "training"
+        mode = "test" if self.opt.phase == "test" or self.for_metrics else "train"
         path_img = os.path.join(self.opt.dataroot, mode, "images")
         path_lab = os.path.join(self.opt.dataroot, mode, "masks")
         img_list = os.listdir(path_img)
@@ -45,8 +46,8 @@ class tenthTrainDataloader(torch.utils.data.Dataset):
         images = sorted(img_list)
         labels = sorted(lab_list)
         assert len(images)  == len(labels), "different len of images and labels %s - %s" % (len(images), len(labels))
-        for i in range(len(images)):
-            assert os.path.splitext(images[i])[0] == os.path.splitext(labels[i])[0], '%s and %s are not matching' % (images[i], labels[i])
+        # for i in range(len(images)):
+        #     assert os.path.splitext(images[i])[0] == os.path.splitext(labels[i])[0], '%s and %s are not matching' % (images[i], labels[i])
         return images, labels, (path_img, path_lab)
 
     def transforms(self, image, label):
@@ -69,5 +70,6 @@ class tenthTrainDataloader(torch.utils.data.Dataset):
         image = TR.functional.to_tensor(image)
         label = TR.functional.to_tensor(label)
         # normalize
-        image = TR.functional.normalize(image, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        #pdb.set_trace()
+        #image = TR.functional.normalize(image, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         return image, label

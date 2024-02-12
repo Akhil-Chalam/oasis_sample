@@ -21,6 +21,7 @@ model.eval()
 
 #--- iterate over validation set ---#
 for i, data_i in enumerate(dataloader_val):
+    print("AAA")
     _, label = models.preprocess_input(opt, data_i)
     generated = model(None, label, "generate", None)
     image_saver(label, generated, data_i["name"])

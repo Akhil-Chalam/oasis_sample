@@ -2,6 +2,7 @@ import torch.nn as nn
 import models.norms as norms
 import torch
 import torch.nn.functional as F
+#import pdb
 
 
 class OASIS_Generator(nn.Module):
@@ -33,7 +34,9 @@ class OASIS_Generator(nn.Module):
             seg.cuda()
         if not self.opt.no_3dnoise:
             dev = seg.get_device() if self.opt.gpu_ids != "-1" else "cpu"
+            #pdb.set_trace()
             z = torch.randn(seg.size(0), self.opt.z_dim, dtype=torch.float32, device=dev)
+
             z = z.view(z.size(0), self.opt.z_dim, 1, 1)
             z = z.expand(z.size(0), self.opt.z_dim, seg.size(2), seg.size(3))
             seg = torch.cat((z, seg), dim = 1)

@@ -199,6 +199,7 @@ class image_saver():
                 model.train()
 
     def save_images(self, batch, name, cur_iter, is_label=False):
+        print("TEST")
         fig = plt.figure()
         for i in range(min(self.rows * self.cols, len(batch))):
             if is_label:
