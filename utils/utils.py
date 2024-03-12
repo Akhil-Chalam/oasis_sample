@@ -26,18 +26,13 @@ def get_start_iters(start_iter, dataset_size):
 class results_saver():
     def __init__(self, opt):
         path = os.path.join(opt.results_dir, opt.name, opt.ckpt_iter)
-        self.path_label = os.path.join(path, "label")
         self.path_image = os.path.join(path, "image")
-        self.path_to_save = {"label": self.path_label, "image": self.path_image}
-        os.makedirs(self.path_label, exist_ok=True)
+        self.path_to_save = {"image": self.path_image}
         os.makedirs(self.path_image, exist_ok=True)
         self.num_cl = opt.label_nc + 2
 
     def __call__(self, label, generated, name):
-        assert len(label) == len(generated)
         for i in range(len(label)):
-            im = tens_to_lab(label[i], self.num_cl)
-            self.save_im(im, "label", name[i])
             im = tens_to_im(generated[i]) * 255
             self.save_im(im, "image", name[i])
 

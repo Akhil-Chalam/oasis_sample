@@ -29,11 +29,12 @@ class OASIS_model(nn.Module):
             if opt.add_vgg_loss:
                 self.VGG_loss = losses.VGGLoss(self.opt.gpu_ids)
 
-    def forward(self, image, label, mode, losses_computer):
+    def forward(self, image, rendered, label, mode, losses_computer):
         # Branching is applied to be compatible with DataParallel
         if mode == "losses_G":
             loss_G = 0
-            fake = self.netG(label)
+            #fake = self.netG(label)
+            fake = self.netG(rendered)
             output_D = self.netD(fake)
             loss_G_adv = losses_computer.loss(output_D, label, for_real=True)
             loss_G += loss_G_adv
@@ -47,7 +48,7 @@ class OASIS_model(nn.Module):
         if mode == "losses_D":
             loss_D = 0
             with torch.no_grad():
-                fake = self.netG(label)
+                fake = self.netG(rendered)
             output_D_fake = self.netD(fake)
             loss_D_fake = losses_computer.loss(output_D_fake, label, for_real=False)
             loss_D += loss_D_fake
@@ -67,9 +68,9 @@ class OASIS_model(nn.Module):
         if mode == "generate":
             with torch.no_grad():
                 if self.opt.no_EMA:
-                    fake = self.netG(label)
+                    fake = self.netG(rendered)
                 else:
-                    fake = self.netEMA(label)
+                    fake = self.netEMA(rendered)
             return fake
 
     def load_checkpoints(self):
@@ -138,6 +139,7 @@ def preprocess_input(opt, data):
     if opt.gpu_ids != "-1":
         data['label'] = data['label'].cuda()
         data['image'] = data['image'].cuda()
+        data['rendered'] = data['rendered'].cuda()
     label_map = data['label']
     bs, _, h, w = label_map.size()
     # nc = opt.semantic_nc
@@ -147,7 +149,7 @@ def preprocess_input(opt, data):
     else:
         input_label = torch.FloatTensor(bs, nc, h, w).zero_()
     input_semantics = input_label.scatter_(1, label_map, 1.0)
-    return data['image'], input_semantics
+    return data['image'], data['rendered'], input_semantics
 
 
 def generate_labelmix(label, fake_image, real_image):
