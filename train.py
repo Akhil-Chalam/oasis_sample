@@ -37,18 +37,18 @@ for epoch in range(start_epoch, opt.num_epochs):
             continue
         already_started = True
         cur_iter = epoch*len(dataloader) + i
-        image, label = models.preprocess_input(opt, data_i)
+        image, rendered, label = models.preprocess_input(opt, data_i)
 
         #--- generator update ---#
         model.module.netG.zero_grad()
-        loss_G, losses_G_list = model(image, label, "losses_G", losses_computer)
+        loss_G, losses_G_list = model(image, rendered, label, "losses_G", losses_computer)
         loss_G, losses_G_list = loss_G.mean(), [loss.mean() if loss is not None else None for loss in losses_G_list]
         loss_G.backward()
         optimizerG.step()
 
         #--- discriminator update ---#
         model.module.netD.zero_grad()
-        loss_D, losses_D_list = model(image, label, "losses_D", losses_computer)
+        loss_D, losses_D_list = model(image, rendered, label, "losses_D", losses_computer)
         loss_D, losses_D_list = loss_D.mean(), [loss.mean() if loss is not None else None for loss in losses_D_list]
         loss_D.backward()
         optimizerD.step()
@@ -57,7 +57,7 @@ for epoch in range(start_epoch, opt.num_epochs):
         if not opt.no_EMA:
             utils.update_EMA(model, cur_iter, dataloader, opt)
         if cur_iter % opt.freq_print == 0:
-            im_saver.visualize_batch(model, image, label, cur_iter)
+            im_saver.visualize_batch(model, rendered, label, cur_iter)
             timer(epoch, cur_iter)
         if cur_iter % opt.freq_save_ckpt == 0:
             utils.save_networks(opt, cur_iter, model)
